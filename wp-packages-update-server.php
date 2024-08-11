@@ -46,6 +46,11 @@ if ( ! defined( 'WPPUS_DEFAULT_CACHE_MAX_SIZE' ) ) {
 	define( 'WPPUS_DEFAULT_CACHE_MAX_SIZE', 100 );
 }
 
+if ( ! defined( 'WPPUS_PACKAGES_DIR' ) ) {
+	define( 'WPPUS_PACKAGES_DIR', WP_CONTENT_DIR . '/uploads/' );
+}
+
+
 $require = array(
 	WPPUS_PLUGIN_PATH . 'inc/class-wppus-nonce.php',
 	WPPUS_PLUGIN_PATH . 'inc/class-wppus-data-manager.php',
