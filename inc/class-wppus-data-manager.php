@@ -5,6 +5,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class WPPUS_Data_Manager {
+
+	public static $instance = null;
+
 	public static $transient_data_dirs = array(
 		'cache',
 		'logs',
@@ -14,8 +17,6 @@ class WPPUS_Data_Manager {
 	public static $persistent_data_dirs = array(
 		'packages',
 	);
-
-	public static $file_system;
 
 	public static $transient_data_db = array(
 		'update_from_remote_locks',
@@ -31,12 +32,10 @@ class WPPUS_Data_Manager {
 
 		if ( ! WP_Filesystem() ) {
 			wp_die( 'File system not available.', __METHOD__ );
-		}
+		} 
 
-		global $wp_filesystem;
-		self::$file_system = $wp_filesystem;
-		self::$root_data_dirname = defined('WPPUS_PACKAGES_DIR')? WPPUS_PACKAGES_DIR . self::$root_data_dirname : self::$file_system->wp_content_dir() . self::$root_data_dirname;
 	}
+
 
 	/*******************************************************************
 	 * Public methods
@@ -65,7 +64,9 @@ class WPPUS_Data_Manager {
 		$root_dir = self::get_data_dir();
 		$result   = true;
 
-		if ( ! self::$file_system->is_dir( $root_dir ) ) {
+		global $wp_filesystem;
+
+		if ( ! $wp_filesystem->is_dir( $root_dir ) ) {
 			$result = self::create_data_dir( 'wppus', false, true );
 		}
 
@@ -73,7 +74,7 @@ class WPPUS_Data_Manager {
 
 			foreach ( array_merge( self::$transient_data_dirs, self::$persistent_data_dirs ) as $directory ) {
 
-				if ( ! self::$file_system->is_dir( $root_dir . DIRECTORY_SEPARATOR . $directory ) ) {
+				if ( ! $wp_filesystem->is_dir( $root_dir . DIRECTORY_SEPARATOR . $directory ) ) {
 					$result = $result && self::create_data_dir( $directory );
 				}
 			}
@@ -82,13 +83,28 @@ class WPPUS_Data_Manager {
 		return $result;
 	}
 
+	public static function get_instance() {
+
+		if ( ! self::$instance ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
+	}
+
 	public static function get_data_dir( $dir = 'root' ) {
 		$data_dir = wp_cache_get( 'data_dir_' . $dir, 'wppus' );
 
 		if ( false === $data_dir ) {
-			
-			
-			$data_dir = trailingslashit(  self::$root_data_dirname );
+			WP_Filesystem();
+
+			global $wp_filesystem;
+
+			if ( ! $wp_filesystem ) {
+				wp_die( 'File system not available.', __METHOD__ );
+			}
+
+			$data_dir = trailingslashit( $wp_filesystem->wp_content_dir() . (defined('WPPUS_PACKAGES_DIR')? WPPUS_PACKAGES_DIR . self::$root_data_dirname : self::$root_data_dirname) );
 
 			if ( 'root' !== $dir ) {
 
@@ -148,9 +164,9 @@ class WPPUS_Data_Manager {
 	protected static function maybe_cleanup_data_dir( $type, $force ) {
 		WP_Filesystem();
 
-		
+		global $wp_filesystem;
 
-		if ( ! self::$file_system ) {
+		if ( ! $wp_filesystem ) {
 			return false;
 		}
 
@@ -158,7 +174,7 @@ class WPPUS_Data_Manager {
 		$max_size_constant_name = 'WPPUS_DEFAULT_' . strtoupper( $type ) . '_MAX_SIZE';
 		$default_max_size       = defined( $max_size_constant_name ) ? constant( $max_size_constant_name ) : 0;
 		$cleanup                = false;
-		$is_dir                 = self::$file_system->is_dir( $directory );
+		$is_dir                 = $wp_filesystem->is_dir( $directory );
 		$total_size             = 0;
 
 		if ( $default_max_size && $is_dir && false === $force ) {
@@ -179,8 +195,8 @@ class WPPUS_Data_Manager {
 
 		if ( $is_dir && ( $cleanup || $force ) ) {
 			$result = true;
-			$result = $result && self::$file_system->rmdir( $directory, true );
-			$result = $result && self::$file_system->mkdir( $directory );
+			$result = $result && $wp_filesystem->rmdir( $directory, true );
+			$result = $result && $wp_filesystem->mkdir( $directory );
 
 			if ( self::is_valid_data_dir( $type ) ) {
 				$result = $result && self::generate_restricted_htaccess( $directory );
@@ -211,11 +227,11 @@ class WPPUS_Data_Manager {
 	}
 
 	protected static function create_data_dir( $name, $include_htaccess = true, $is_root_dir = false ) {
-		
+		global $wp_filesystem;
 
 		$root_dir = self::get_data_dir();
 		$path     = ( $is_root_dir ) ? $root_dir : $root_dir . $name;
-		$result   = self::$file_system->mkdir( $path );
+		$result   = $wp_filesystem->mkdir( $path );
 
 		if ( $result && $include_htaccess ) {
 			self::generate_restricted_htaccess( $path );
@@ -227,18 +243,18 @@ class WPPUS_Data_Manager {
 	protected static function generate_restricted_htaccess( $directory ) {
 		WP_Filesystem();
 
-		
+		global $wp_filesystem;
 
-		if ( ! self::$file_system ) {
+		if ( ! $wp_filesystem ) {
 			return false;
 		}
 
 		$contents = "Order deny,allow\nDeny from all";
 		$htaccess = trailingslashit( $directory ) . '.htaccess';
 
-		self::$file_system->touch( $htaccess );
+		$wp_filesystem->touch( $htaccess );
 
-		return self::$file_system->put_contents( $htaccess, $contents, 0644 );
+		return $wp_filesystem->put_contents( $htaccess, $contents, 0644 );
 	}
 
 	protected static function clear_cleanup_schedules() {
