@@ -249,6 +249,87 @@ class WPPUS_Update_Server extends Wpup_UpdateServer {
 		$request->token = $request->param( 'token' );
 
 		return $request;
+	} 
+
+	protected function outputAsJson($response) 
+	{
+		return $response;
+	}
+
+	/**
+	 * Stop script execution with an error message.
+	 *
+	 * @param string $message Error message.
+	 * @param int $httpStatus Optional HTTP status code. Defaults to 500 (Internal Server Error).
+	 */
+	protected function exitWithError($message = '', $httpStatus = 500) {
+		$statusMessages = array(
+			// This is not a full list of HTTP status messages. We only need the errors.
+			// [Client Error 4xx]
+			400 => '400 Bad Request',
+			401 => '401 Unauthorized',
+			402 => '402 Payment Required',
+			403 => '403 Forbidden',
+			404 => '404 Not Found',
+			405 => '405 Method Not Allowed',
+			406 => '406 Not Acceptable',
+			407 => '407 Proxy Authentication Required',
+			408 => '408 Request Timeout',
+			409 => '409 Conflict',
+			410 => '410 Gone',
+			411 => '411 Length Required',
+			412 => '412 Precondition Failed',
+			413 => '413 Request Entity Too Large',
+			414 => '414 Request-URI Too Long',
+			415 => '415 Unsupported Media Type',
+			416 => '416 Requested Range Not Satisfiable',
+			417 => '417 Expectation Failed',
+			// [Server Error 5xx]
+			500 => '500 Internal Server Error',
+			501 => '501 Not Implemented',
+			502 => '502 Bad Gateway',
+			503 => '503 Service Unavailable',
+			504 => '504 Gateway Timeout',
+			505 => '505 HTTP Version Not Supported',
+		);
+
+		if ( !isset($_SERVER['SERVER_PROTOCOL']) || $_SERVER['SERVER_PROTOCOL'] === '' ) {
+			$protocol = 'HTTP/1.1';
+		} else {
+			$protocol = $_SERVER['SERVER_PROTOCOL'];
+		}
+
+		//Output a HTTP status header.
+		if ( isset($statusMessages[$httpStatus]) ) {
+			///header($protocol . ' ' . $statusMessages[$httpStatus]);
+			$title = $statusMessages[$httpStatus];
+		} else {
+		//	header('X-Ws-Update-Server-Error: ' . $httpStatus, true, $httpStatus);
+			$title = 'HTTP ' . $httpStatus;
+		}
+
+		if ( $message === '' ) {
+			$message = $title;
+		}
+		
+		throw new \Exception($message, $httpStatus);
+	}
+
+	public function handleRequest($query = null, $headers = null) {
+		$this->startTime = microtime(true);
+		$request = $this->initRequest($query, $headers);
+		try {
+			$this->logRequest($request);
+			$this->loadPackageFor($request);
+			$this->validateRequest($request);
+			$this->checkAuthorization($request);
+
+			return $this->dispatch($request);
+		} catch (\Throwable $th) {
+			if($request->action == 'download') throw $th;
+
+			return new \WP_Error($th->getCode(), $th->getMessage());
+		}
 	}
 
 	protected function checkAuthorization( $request ) {
@@ -278,11 +359,32 @@ class WPPUS_Update_Server extends Wpup_UpdateServer {
 		do_action( 'wppus_update_server_action_download', $request );
 
 		$handled = apply_filters( 'wppus_update_server_action_download_handled', false, $request );
-
+		
 		if ( ! $handled ) {
 			parent::actionDownload( $request );
 		}
 	}
+
+	protected function loadPackageFor($request) {
+
+		if ( empty($request->slug) ) {
+			return;
+		}
+
+		try {
+			$request->package = $this->findPackage($request->slug);
+		} catch (\Throwable $th) {
+			
+		
+			$this->exitWithError(sprintf(
+				'Package "%s" exists, but it is not a valid plugin or theme. ' .
+				'Make sure it has the right format (Zip) and directory structure.',
+				htmlentities($request->slug)
+			));
+		}
+
+	}
+
 
 	protected function findPackage( $slug, $check_remote = true ) {
 		WP_Filesystem();
@@ -349,14 +451,18 @@ class WPPUS_Update_Server extends Wpup_UpdateServer {
 	}
 
 	protected function actionGetMetadata( Wpup_Request $request ) {
-		$meta                         = $request->package->getMetadata();
-		$meta['download_url']         = $this->generateDownloadUrl( $request->package );
-		$meta                         = $this->filterMetadata( $meta, $request );
-		$meta['request_time_elapsed'] = sprintf( '%.3f', microtime( true ) - $this->startTime ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		
+		try {
+			$meta                         = $request->package->getMetadata();
+			$meta['download_url']         = $this->generateDownloadUrl( $request->package );
+			$meta                         = $this->filterMetadata( $meta, $request );
+			$meta['request_time_elapsed'] = sprintf( '%.3f', microtime( true ) - $this->startTime ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			
+		} catch (\Throwable $th) {
+			$this->exitWithError('Could not retrieve package meta data', 404);
+		}
 
-		$this->outputAsJson( $meta );
-
-		exit;
+		return $this->outputAsJson( $meta );
 	}
 
 	// Misc. -------------------------------------------------------
@@ -479,5 +585,20 @@ class WPPUS_Update_Server extends Wpup_UpdateServer {
 		}
 
 		return $local_filename;
+	}
+
+	/**
+	 * Run the requested action.
+	 *
+	 * @param Wpup_Request $request
+	 */
+	protected function dispatch($request) {
+		if ( $request->action === 'get_metadata' ) {
+			return $this->actionGetMetadata($request);
+		} else if ( $request->action === 'download' ) {
+			$this->actionDownload($request);
+		} else {
+			return $this->exitWithError(sprintf('Invalid action "%s".', htmlentities($request->action)), 400);
+		}
 	}
 }
