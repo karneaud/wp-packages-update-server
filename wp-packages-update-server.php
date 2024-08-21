@@ -47,7 +47,7 @@ if ( ! defined( 'WPPUS_DEFAULT_CACHE_MAX_SIZE' ) ) {
 }
 
 if ( ! defined( 'WPPUS_PACKAGES_DIR' ) ) {
-	define( 'WPPUS_PACKAGES_DIR', WP_CONTENT_DIR . '/uploads/' );
+	define( 'WPPUS_PACKAGES_DIR', 'uploads/' );
 }
 
 
@@ -58,6 +58,7 @@ $require = array(
 	WPPUS_PLUGIN_PATH . 'inc/class-wppus-update-api.php',
 	WPPUS_PLUGIN_PATH . 'inc/class-wppus-license-api.php',
 	WPPUS_PLUGIN_PATH . 'inc/class-wppus-webhook-api.php',
+	WPPUS_PLUGIN_PATH . 'inc/class-wppus-crypto.php',
 );
 
 $require   = apply_filters( 'wppus_mu_require', $require );
@@ -86,6 +87,7 @@ if ( ! did_action( 'wppus_mu_init' ) ) {
 		require_once WPPUS_PLUGIN_PATH . 'lib/wp-update-server/loader.php';
 		require_once WPPUS_PLUGIN_PATH . 'lib/wp-update-server-extended/loader.php';
 		require_once WPPUS_PLUGIN_PATH . 'inc/class-wppus-update-server.php';
+		require_once WPPUS_PLUGIN_PATH . 'inc/class-wppus-license-update-server.php';
 		require_once WPPUS_PLUGIN_PATH . 'inc/class-wppus-package-api.php';
 	}
 
