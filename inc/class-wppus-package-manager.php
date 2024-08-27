@@ -408,7 +408,7 @@ class WPPUS_Package_Manager {
 
 		$update_server = new WPPUS_Update_Server(
 			$config['use_remote_repository'],
-			home_url( '/wppus-update-api/' ),
+			home_url( '/wppus/update/' ),
 			$config['server_directory']
 		);
 
