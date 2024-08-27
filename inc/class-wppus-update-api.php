@@ -18,9 +18,36 @@ class WPPUS_Update_API {
 		self::$api_base_endpoint_url = sprintf("%s/v%d", self::$api_base_url ,self::$api_version);
 		self::get_config();
 		$this->register_routes();
+		add_action("init", function() { add_rewrite_rule( '^wppus/update/?$', 'index.php?$matches[1]&__wppus_update_api=1&action=download', 'top'); flush_rewrite_rules();  });
+		add_filter('query_vars', function($vars) {
+			$vars = array_merge(
+				$vars,
+				array(
+					'__wppus_update_api',
+					'action',
+					'token',
+					'package_id',
+					'update_type',
+				),
+				array_keys($this->get_download_args())
+			);
+	
+			return $vars;
+		});
+		add_action( 'parse_request', function(){
+			global $wp;
+			if ( isset( $wp->query_vars['__wppus_update_api'] ) ) {
+				$request = new \WP_REST_Request('GET','');
+				$request->set_query_params(array_intersect_key($wp->query_vars, $this->get_download_args() ));
+				$this->download_package( $request );
+			}
+		}, 0 );
+		
 		add_action( 'wppus_checked_remote_package_update', array( $this, 'wppus_checked_remote_package_update' ), 10, 3 );
 		add_action( 'wppus_removed_package', array( $this, 'wppus_removed_package' ), 10, 3 );
 		add_action( 'wppus_primed_package_from_remote', array( $this, 'wppus_primed_package_from_remote' ), 10, 2 );
+		
+		
 	}
 	/**
 	 * Register the custom REST API routes based on action.
@@ -31,10 +58,9 @@ class WPPUS_Update_API {
 			register_rest_route( self::$api_base_endpoint_url, '/packages/metadata', array(
 				'methods'             => 'GET',
 				'callback'            => array( $this, 'get_metadata' ),
-				//'permission_callback' => array( $this, 'permission_check' ),
+				'permission_callback' => '__return_true',//array( $this, 'permission_check' ),
 				'args'                => $this->get_metadata_args(),
 			));
-
 			// Route for downloading packag
 			register_rest_route(self::$api_base_endpoint_url, '/packages/download', array(
 				'methods'             => 'GET',
@@ -42,6 +68,8 @@ class WPPUS_Update_API {
 				'permission_callback' => array( $this, 'permission_check' ),
 				'args'                => $this->get_download_args(),
 			));
+
+			
 		});
 	}
 
@@ -115,12 +143,15 @@ class WPPUS_Update_API {
 	public function download_package( $request ) {
 		$params     = $request->get_params();
 		$package_id = $params['package_id'];
-		$response = $this->download_remote_package( $package_id, $params['update_type'], false );
-		if ( is_wp_error( $response ) ) {
-			return new WP_REST_Response( array( 'error' => $response->get_error_message() ), 400 );
-		}
+		$this->init_server($params['package_id']);
+		$params = ['slug' => $params['package_id'] , 'action' => 'download'] + $params;
+		do_action( 'wppus_before_handle_update_request', $params );
 
-		return new WP_REST_Response( $response, 200 );
+		$response = $this->update_server->handleRequest($params);
+		if ( is_wp_error( $response ) ) {
+			$status = $response->get_error_code();
+			$response = ['status' => $response->get_error_code(), 'message' => $response->get_error_message()];
+		}
 	}
 
 	/**
@@ -191,6 +222,12 @@ class WPPUS_Update_API {
 				'type'        => 'string',
 				'required'    => false,
 			),
+			'update_type' => array(
+				'description' => __( 'Type of package.', 'wppus' ),
+				'type'        => 'string',
+				'required'    => false,
+			)
+			
 		);
 	}
 
@@ -211,7 +248,7 @@ class WPPUS_Update_API {
 		if ( ! isset( $this->update_server ) || ! is_a( $this->update_server, $server_class_name ) ) {
 			$this->update_server = new $server_class_name(
 				$config['use_remote_repository'],
-				home_url( '/wppus-update-api/' ),
+				home_url( '/wppus/update/' ),
 				$config['server_directory'],
 				$config['repository_service_url'],
 				$config['repository_branch'],
@@ -231,7 +268,7 @@ class WPPUS_Update_API {
 	public static function is_doing_api_request() {
 
 		if ( null === self::$doing_update_api_request ) {
-			self::$doing_update_api_request = ( false !== strpos( $_SERVER['REQUEST_URI'], 'wppus-update-api' ) );
+			self::$doing_update_api_request = ( false !== strpos( $_SERVER['REQUEST_URI'], 'wppus/update' ) );
 		}
 
 		return self::$doing_update_api_request;
