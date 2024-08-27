@@ -1,5 +1,4 @@
 <?php
-require WPPUS_PLUGIN_PATH . '/lib/plugin-update-checker/plugin-update-checker.php';
 
 use YahnisElsts\PluginUpdateChecker\v5p3\Vcs\GitHubApi;
 use YahnisElsts\PluginUpdateChecker\v5p3\Vcs\GitLabApi;
