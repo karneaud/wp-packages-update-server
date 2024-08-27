@@ -62,7 +62,7 @@ $require = array(
 );
 
 $require   = apply_filters( 'wppus_mu_require', $require );
-$require[] = WPPUS_PLUGIN_PATH . 'lib/action-scheduler/action-scheduler.php';
+$require[] = WPPUS_PLUGIN_PATH . 'lib/autoload.php';
 
 foreach ( $require as $file ) {
 
@@ -84,8 +84,6 @@ if ( ! did_action( 'wppus_mu_init' ) ) {
 	}
 
 	if ( ! WPPUS_License_API::is_doing_api_request() ) {
-		require_once WPPUS_PLUGIN_PATH . 'lib/wp-update-server/loader.php';
-		require_once WPPUS_PLUGIN_PATH . 'lib/wp-update-server-extended/loader.php';
 		require_once WPPUS_PLUGIN_PATH . 'inc/class-wppus-update-server.php';
 		require_once WPPUS_PLUGIN_PATH . 'inc/class-wppus-license-update-server.php';
 		require_once WPPUS_PLUGIN_PATH . 'inc/class-wppus-package-api.php';
@@ -214,7 +212,6 @@ function wppus_run() {
 add_action( 'plugins_loaded', 'wppus_run', -99, 0 );
 
 if ( ! WPPUS_Update_API::is_doing_api_request() && ! WPPUS_License_API::is_doing_api_request() ) {
-	require_once __DIR__ . '/lib/wp-update-migrate/class-wp-update-migrate.php';
 
 	if ( ! wp_doing_ajax() && is_admin() && ! wp_doing_cron() ) {
 		add_action(
