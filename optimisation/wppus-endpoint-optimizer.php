@@ -42,7 +42,7 @@ function wppus_muplugins_loaded() {
 		'wppus-license-api' === $frag ||
 		'wppus-nonce' === $frag ||
 		'wppus-token' === $frag ||
-		'wppus-update-api' === $frag ||
+		'wppus/update/' === $frag ||
 		'wppus-webhook-api' === $frag
 	);
 
