@@ -1,0 +1,42 @@
+{
+    "name": "froger-me/wp-packages-update-server",
+    "description": "Run your own update server for plugins and themes.",
+    "version":"2.0",
+    "require": {
+        "woocommerce/action-scheduler": "*",
+        "yahnis-elsts/wp-update-server":"*",
+        "froger-me/wp-update-migrate":"1.5",
+        "yahnis-elsts/plugin-update-checker":"*"
+    },
+    "repositories":[
+        {
+            "type": "package",
+            "package": {
+                "name": "froger-me/wp-update-migrate",
+                "version":"1.5",
+                "dist": {
+                    "url": "https://github.com/froger-me/wp-update-migrate/archive/refs/heads/master.zip",
+                    "type": "zip"
+                },
+                "source": {
+                    "url": "https://github.com/froger-me/wp-update-migrate.git",
+                    "type": "git",
+                    "reference": "master"
+                },
+                "autoload": {
+                    "classmap": ["./"]
+                }
+            }
+        }
+    ],
+    "config": {
+        "vendor-dir": "lib"
+    },
+    "autoload": {
+        "files": [
+            "./lib/yahnis-elsts/wp-update-server/loader.php",
+            "./lib/wp-update-server-extended/loader.php",
+            "./lib/proxy-update-checker/proxy-update-checker.php",
+            "./lib/PhpS3/PhpS3.php"]
+    }
+}

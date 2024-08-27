@@ -6,7 +6,6 @@
  * Copyright 2018 Alexandre Froger
  * Released under the MIT license. See license.txt for details.
  */
-require WPPUS_PLUGIN_PATH . '/lib/plugin-update-checker/plugin-update-checker.php';
 
 use YahnisElsts\PluginUpdateChecker\v5p3\Plugin;
 use YahnisElsts\PluginUpdateChecker\v5p3\Theme;
