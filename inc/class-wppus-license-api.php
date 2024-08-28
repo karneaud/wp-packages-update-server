@@ -174,6 +174,21 @@ class WPPUS_License_API {
 		return $fire;
 	}
 
+    public function wppus_api_webhook_events( $webhook_events ) {
+
+		if ( isset( $webhook_events['license'], $webhook_events['license']['events'] ) ) {
+			$webhook_events['license']['events']['license_activate']   = __( 'License activated', 'wppus' );
+			$webhook_events['license']['events']['license_deactivate'] = __( 'License deactivated', 'wppus' );
+			$webhook_events['license']['events']['license_add']        = __( 'License added', 'wppus' );
+			$webhook_events['license']['events']['license_edit']       = __( 'License edited', 'wppus' );
+			$webhook_events['license']['events']['license_delete']     = __( 'License deleted', 'wppus' );
+			$webhook_events['license']['events']['license_require']    = __( 'License becomes required for a package', 'wppus' );
+			$webhook_events['license']['events']['license_unrequire']  = __( 'License becomes not required a for package', 'wppus' );
+		}
+
+		return $webhook_events;
+	}
+
     public function register_routes() {
         add_action('rest_api_init', function () {
             register_rest_route(self::$api_base_endpoint_url, '/licenses/browse', array(
@@ -692,5 +707,6 @@ class WPPUS_License_API {
         
         return $this->output_api_response($response);
     }
+    
     
 }
