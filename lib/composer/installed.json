@@ -172,6 +172,6 @@
             "install-path": "../yahnis-elsts/wp-update-server"
         }
     ],
-    "dev": false,
+    "dev": true,
     "dev-package-names": []
 }

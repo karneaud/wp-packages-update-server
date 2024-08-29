@@ -34,9 +34,11 @@
     },
     "autoload": {
         "files": [
+            "./lib/yahnis-elsts/plugin-update-checker/plugin-update-checker.php",
             "./lib/yahnis-elsts/wp-update-server/loader.php",
             "./lib/wp-update-server-extended/loader.php",
             "./lib/proxy-update-checker/proxy-update-checker.php",
             "./lib/PhpS3/PhpS3.php"]
     }
+
 }

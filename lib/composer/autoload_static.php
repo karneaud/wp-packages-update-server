@@ -8,6 +8,7 @@ class ComposerStaticInit9eb5e761c6eb64cbd4f8776c2ff0f597
 {
     public static $files = array (
         'd05ecc14ff93fd612a81ec7e8ab4c2c9' => __DIR__ . '/..' . '/yahnis-elsts/plugin-update-checker/load-v5p4.php',
+        '0340f0240c3abd59881b9f856bd3439f' => __DIR__ . '/..' . '/yahnis-elsts/plugin-update-checker/plugin-update-checker.php',
         '2c7c83aca3c888b4f75c8c6263f094f7' => __DIR__ . '/..' . '/yahnis-elsts/wp-update-server/loader.php',
         'ce8c46e7dcdbbcb8866883fd6959fe6a' => __DIR__ . '/..' . '/wp-update-server-extended/loader.php',
         '24200b209e22feccfa120827cc5e5740' => __DIR__ . '/..' . '/proxy-update-checker/proxy-update-checker.php',

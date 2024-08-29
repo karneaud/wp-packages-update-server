@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'd05ecc14ff93fd612a81ec7e8ab4c2c9' => $vendorDir . '/yahnis-elsts/plugin-update-checker/load-v5p4.php',
+    '0340f0240c3abd59881b9f856bd3439f' => $vendorDir . '/yahnis-elsts/plugin-update-checker/plugin-update-checker.php',
     '2c7c83aca3c888b4f75c8c6263f094f7' => $vendorDir . '/yahnis-elsts/wp-update-server/loader.php',
     'ce8c46e7dcdbbcb8866883fd6959fe6a' => $vendorDir . '/wp-update-server-extended/loader.php',
     '24200b209e22feccfa120827cc5e5740' => $vendorDir . '/proxy-update-checker/proxy-update-checker.php',

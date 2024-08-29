@@ -4,13 +4,13 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9eb5e761c6eb64cbd4f8776c2ff0f597",
+    "content-hash": "28fed83f34747cccc56ccc41070f55d7",
     "packages": [
         {
             "name": "froger-me/wp-update-migrate",
             "version": "1.5",
             "source": {
-                "type": "vcs",
+                "type": "git",
                 "url": "https://github.com/froger-me/wp-update-migrate.git",
                 "reference": "master"
             },
