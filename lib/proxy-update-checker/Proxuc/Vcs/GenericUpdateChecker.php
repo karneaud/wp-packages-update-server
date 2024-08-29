@@ -2,8 +2,8 @@
 
 require WPPUS_PLUGIN_PATH . '/lib/plugin-update-checker/plugin-update-checker.php';
 
-use YahnisElsts\PluginUpdateChecker\v5p3\Utils;
-use YahnisElsts\PluginUpdateChecker\v5p3\Vcs\BaseChecker;
+use YahnisElsts\PluginUpdateChecker\v5p4\Utils;
+use YahnisElsts\PluginUpdateChecker\v5p4\Vcs\BaseChecker;
 use Anyape\ProxyUpdateChecker\Generic\Package;
 use Anyape\ProxyUpdateChecker\Generic\Update;
 use Anyape\ProxyUpdateChecker\Generic\UpdateChecker;

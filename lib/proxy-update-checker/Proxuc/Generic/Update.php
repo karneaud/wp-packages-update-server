@@ -2,7 +2,7 @@
 
 namespace Anyape\ProxyUpdateChecker\Generic;
 
-use YahnisElsts\PluginUpdateChecker\v5p3\Update as BaseUpdate;
+use YahnisElsts\PluginUpdateChecker\v5p4\Update as BaseUpdate;
 
 if (!class_exists(Update::class, false)):
 

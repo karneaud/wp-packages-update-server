@@ -7,14 +7,16 @@
  * Released under the MIT license. See license.txt for details.
  */
 
-use YahnisElsts\PluginUpdateChecker\v5p3\Plugin;
-use YahnisElsts\PluginUpdateChecker\v5p3\Theme;
-use Anyape\ProxyUpdateChecker\Generic;
-use YahnisElsts\PluginUpdateChecker\v5p3\Vcs;
-use YahnisElsts\PluginUpdateChecker\v5p3\Vcs\GitHubApi;
-use YahnisElsts\PluginUpdateChecker\v5p3\Vcs\GitLabApi;
-use YahnisElsts\PluginUpdateChecker\v5p3\Vcs\BitBucketApi;
 
+use YahnisElsts\PluginUpdateChecker\v5p4\Plugin;
+use YahnisElsts\PluginUpdateChecker\v5p4\Theme;
+use Anyape\ProxyUpdateChecker\Generic;
+use YahnisElsts\PluginUpdateChecker\v5p4\Vcs;
+use YahnisElsts\PluginUpdateChecker\v5p4\Vcs\GitHubApi;
+use YahnisElsts\PluginUpdateChecker\v5p4\Vcs\GitLabApi;
+use YahnisElsts\PluginUpdateChecker\v5p4\Vcs\BitBucketApi;
+
+require dirname(__FILE__) . '/../yahnis-elsts/plugin-update-checker/plugin-update-checker.php';
 require dirname(__FILE__) . '/Proxuc/Factory.php';
 require dirname(__FILE__) . '/Proxuc/Autoloader.php';
 new Proxuc_Autoloader();
@@ -26,6 +28,6 @@ Proxuc_Factory::addVersion('Vcs_ThemeUpdateChecker', 'Proxuc_Vcs_ThemeUpdateChec
 Proxuc_Factory::addVersion('Vcs_GenericUpdateChecker', 'Proxuc_Vcs_GenericUpdateChecker', '1.0');
 
 Proxuc_Factory::setApiVersion('5.0');
-Proxuc_Factory::addVersion('GitHubApi', 'GitHubApi', '5.3');
-Proxuc_Factory::addVersion('BitBucketApi', 'BitBucketApi', '5.3');
-Proxuc_Factory::addVersion('GitLabApi', 'GitLabApi', '5.3');
+Proxuc_Factory::addVersion('GitHubApi', 'GitHubApi', '5.4');
+Proxuc_Factory::addVersion('BitBucketApi', 'BitBucketApi', '5.4');
+Proxuc_Factory::addVersion('GitLabApi', 'GitLabApi', '5.4');

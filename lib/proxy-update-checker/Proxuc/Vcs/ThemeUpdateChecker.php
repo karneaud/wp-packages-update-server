@@ -2,11 +2,11 @@
 
 require WPPUS_PLUGIN_PATH . '/lib/plugin-update-checker/plugin-update-checker.php';
 
-use YahnisElsts\PluginUpdateChecker\v5p3\Utils;
-use YahnisElsts\PluginUpdateChecker\v5p3\Vcs\BaseChecker;
-use YahnisElsts\PluginUpdateChecker\v5p3\Theme\Package;
-use YahnisElsts\PluginUpdateChecker\v5p3\Theme\Update;
-use YahnisElsts\PluginUpdateChecker\v5p3\Theme\UpdateChecker;
+use YahnisElsts\PluginUpdateChecker\v5p4\Utils;
+use YahnisElsts\PluginUpdateChecker\v5p4\Vcs\BaseChecker;
+use YahnisElsts\PluginUpdateChecker\v5p4\Theme\Package;
+use YahnisElsts\PluginUpdateChecker\v5p4\Theme\Update;
+use YahnisElsts\PluginUpdateChecker\v5p4\Theme\UpdateChecker;
 
 if (! class_exists(Proxuc_Vcs_ThemeUpdateChecker::class, false)):
 

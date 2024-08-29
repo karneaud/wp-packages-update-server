@@ -2,8 +2,8 @@
 
 namespace Anyape\ProxyUpdateChecker\Generic;
 
-use YahnisElsts\PluginUpdateChecker\v5p3\UpdateChecker as BaseUpdateChecker;
-use YahnisElsts\PluginUpdateChecker\v5p3\Utils;
+use YahnisElsts\PluginUpdateChecker\v5p4\UpdateChecker as BaseUpdateChecker;
+use YahnisElsts\PluginUpdateChecker\v5p4\Utils;
 
 if (!class_exists(UpdateChecker::class, false)):
 

@@ -1,12 +1,10 @@
 <?php
 
-require WPPUS_PLUGIN_PATH . '/lib/plugin-update-checker/plugin-update-checker.php';
-
-use YahnisElsts\PluginUpdateChecker\v5p3\Vcs\Api;
-use YahnisElsts\PluginUpdateChecker\v5p3\Vcs\BaseChecker;
-use YahnisElsts\PluginUpdateChecker\v5p3\Plugin\Package;
-use YahnisElsts\PluginUpdateChecker\v5p3\Plugin\UpdateChecker;
-use YahnisElsts\PluginUpdateChecker\v5p3\Plugin\PluginInfo;
+use YahnisElsts\PluginUpdateChecker\v5p4\Vcs\Api;
+use YahnisElsts\PluginUpdateChecker\v5p4\Vcs\BaseChecker;
+use YahnisElsts\PluginUpdateChecker\v5p4\Plugin\Package;
+use YahnisElsts\PluginUpdateChecker\v5p4\Plugin\UpdateChecker;
+use YahnisElsts\PluginUpdateChecker\v5p4\Plugin\PluginInfo;
 
 if ( ! class_exists(Proxuc_Vcs_PluginUpdateChecker::class, false) ):
 
@@ -81,7 +79,7 @@ if ( ! class_exists(Proxuc_Vcs_PluginUpdateChecker::class, false) ):
 			$info->slug = $this->slug;
 
 			$this->setInfoFromHeader($this->Vcs_getPluginHeader(), $info);
-
+					
 			//Pick a branch or tag.
 			$updateSource = $api->chooseReference($this->branch);
 			if ( $updateSource ) {
