@@ -1,5 +1,7 @@
 <?php
 
+use YahnisElsts\PluginUpdateChecker\v5p4\Vcs\GitHubApi;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
@@ -386,6 +388,49 @@ class WPPUS_Update_API {
 		if ( $force || $this->update_server->check_remote_package_update( $slug ) ) {
 			$result = $this->update_server->save_remote_package_to_local( $slug );
 		}
+
+		return $result;
+	}
+
+	public function download_remote_package_from_url( $slug, $repo_url, $token, $type = 'Generic', $force = true ) {
+		$result = false;
+		self::$config['repository_credentials'] = $token;
+		self::$config['repository_service_url'] = str_replace($slug,'',$repo_url);
+		
+		add_filter(
+			'wppus_update_checker',
+			function(
+					$update_checker,
+					$slug,
+					$type,
+					$repository_service_url,
+					$repository_branch,
+					$repository_credentials,
+					$repository_service_self_hosted
+				) use ($result) {
+					$api = $update_checker->getVcsApi();
+					$release = $api->getLatestRelease();
+					$main_file = $api->getRemoteFile('style.css', $release->version) ? 'style.css' : "{$slug}.php";
+					$asset = array_filter($release->apiResponse->assets, fn($a) => $a->name == "{$slug}.zip");
+					$asset = array_shift(
+						$asset
+					);
+					$result = (object) (compact('type','slug', 'main_file') + ['name'=> $slug, 'version' => $release->version, 'download_url' => $asset->browser_download_url ]);
+					add_filter("puc_request_update_result-{$slug}", function($a,$b) use ($result) {
+						if(empty($a)) $a = $result;
+			
+						return $a;
+					} ,10, 2);
+
+					return $update_checker;
+			},
+			10, 7
+		);
+		$this->init_server( $slug );
+		$this->update_server->set_type( $type );
+		//if ( $force || $this->update_server->check_remote_package_update( $slug ) ) {
+			$result = $this->update_server->save_remote_package_to_local( $slug );
+		//}
 
 		return $result;
 	}
