@@ -28,6 +28,7 @@ class WPPUS_Package_Manager {
 			add_action( 'wp_ajax_wppus_force_clean', array( $this, 'force_clean' ), 10, 0 );
 			add_action( 'wp_ajax_wppus_prime_package_from_remote', array( $this, 'prime_package_from_remote' ), 10, 0 );
 			add_action( 'wp_ajax_wppus_manual_package_upload', array( $this, 'manual_package_upload' ), 10, 0 );
+			add_action( 'wp_ajax_wppus_upload_package_from_remote', array( $this, 'upload_package_from_remote' ), 10, 0 );
 			add_action( 'load-toplevel_page_wppus-page', array( $this, 'add_page_options' ), 10, 0 );
 			add_action( 'wppus_package_manager_pre_delete_package', array( $this, 'wppus_package_manager_pre_delete_package' ), 10, 1 );
 			add_action( 'wppus_package_manager_deleted_package', array( $this, 'wppus_package_manager_deleted_package' ), 10, 1 );
@@ -166,6 +167,57 @@ class WPPUS_Package_Manager {
 
 				$api    = WPPUS_Update_API::get_instance();
 				$result = $api->download_remote_package( $slug, null, true );
+			} else {
+				$error = new WP_Error(
+					__METHOD__,
+					__( 'Error - could not get remote package. Missing package slug - please reload the page and try again.', 'wppus' )
+				);
+			}
+		} else {
+			$error = new WP_Error(
+				__METHOD__,
+				__( 'Error - could not get remote package. The page has expired - please reload the page and try again.', 'wppus' )
+			);
+		}
+
+		do_action( 'wppus_primed_package_from_remote', $result, $slug );
+
+		if ( ! $error && $result ) {
+			wp_send_json_success();
+		} else {
+
+			if ( ! $error ) {
+				$error = new WP_Error(
+					__METHOD__,
+					__( 'Error - could not get remote package. Check if a repository with this slug exists and has a valid file structure.', 'wppus' )
+				);
+			}
+
+			wp_send_json_error( $error );
+		}
+	}
+
+	public function upload_package_from_remote() {
+		$result = false;
+		$error  = false;
+		$slug   = 'N/A';
+		$token = $_REQUEST['token'];
+		
+		if ( isset( $_REQUEST['nonce'] ) && wp_verify_nonce( $_REQUEST['nonce'], 'wppus_plugin_options' ) ) {
+			$url = filter_input( INPUT_POST, 'url', FILTER_VALIDATE_URL );
+			if(!$url) wp_send_json_error( new WP_Error(
+				__METHOD__,
+				__( 'Error - could not get remote package. Missing package url - please reload the page and try again.', 'wppus' )
+			));
+
+			$repo = str_replace('https://github.com/','',$url);
+			$slug = basename($repo);
+
+			if ( $slug ) {
+				Wppus_Update_Server::unlock_update_from_remote( $slug );
+
+				$api    = WPPUS_Update_API::get_instance();
+				$result = $api->download_remote_package_from_url( $slug, $url, $token, 'Generic', true );
 			} else {
 				$error = new WP_Error(
 					__METHOD__,
