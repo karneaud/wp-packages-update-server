@@ -164,6 +164,42 @@ jQuery(document).ready(function ($) {
 
 	});
 
+	$('#wppus_manual_package_remote_upload_trigger').on('click', function(e) {
+		e.preventDefault();
+
+		var data   = {
+				url :   $('#wppus_manual_package_remote_upload').val(),
+				token :   $('#wppus_manual_package_remote_upload_token').val(),
+				nonce :  $('#wppus_plugin_options_handler_nonce').val(),
+				action : 'wppus_upload_package_from_remote'
+			};
+
+		$.ajax({
+			url: WppusAdminMain.ajax_url,
+			data: data,
+			type: 'POST',
+			success: function(response) {
+
+				if (!response.success) {
+					var message = '';
+
+					/* jshint ignore:start */
+					$.each(response.data, function(idx, value) {
+						message += value.message + "\n";
+					});
+					/* jshint ignore:end */
+					window.alert(message);
+				} else {
+					window.location.reload(true);
+				}
+			},
+			error: function (jqXHR, textStatus) {
+				WppusAdminMain.debug && console.log(textStatus);
+			}
+		});
+
+	});
+
 	$('#wppus_manual_package_upload').on('change', function() {
 		var fileinput = $(this);
 
