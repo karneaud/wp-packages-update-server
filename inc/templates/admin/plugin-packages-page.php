@@ -106,6 +106,42 @@
 				</p>
 			</td>
 		</tr>
+		<tr id="wppus_manual_package_remote_upload_dropzone">
+			<th>
+				<label for="wppus_manual_package_remote_upload"><?php esc_html_e( 'Add remote package', 'wppus' ); ?>
+					(<?php esc_html_e( 'Github', 'wppus' ); ?>)
+				</label>
+			</th>
+			<td>
+				<input class="regular-text" type="url" id="wppus_manual_package_remote_upload" name="wppus_manual_package_remote_upload" placeholder="Github Repo" value=""><br/>
+				<input class="input-text" type="text" id="wppus_manual_package_remote_upload_token" name="wppus_manual_package_remote_upload_token" placeholder="Token" value=""><br/>
+				<input type="button" value="<?php print esc_attr_e( 'Get package', 'wppus' ); ?>" class="button button-primary manual-package-remote-upload-trigger" id="wppus_manual_package_remote_upload_trigger" /><div class="spinner"></div>
+				<p class="description">
+					<?php
+					printf(
+						// translators: %s is <code>$packages_dir</code>
+						esc_html__( 'Add a Github URL package to %s directory. The archive needs to be a valid generic package, or a valid WordPress plugin or theme package.', 'wppus' ),
+						'<code>' . esc_html( $packages_dir ) . '</code>',
+					);
+					?>
+					<br>
+					<?php
+					printf(
+						// translators: %1$s is <code>package-slug.zip</code>, %2$s is <code>package-slug.php</code>
+						esc_html__( 'In the case of a plugin, the main plugin file must have the same name as the zip archive - for example, the main plugin file in %1$s would be %2$s.', 'wppus' ),
+						'<code>package-slug.zip</code>',
+						'<code>package-slug.php</code>',
+					);
+					?>
+					<br>
+					<?php esc_html_e( 'Using this method adds the package to the list if not present or overwrites the existing package.', 'wppus' ); ?>
+					<?php if ( get_option( 'wppus_use_remote_repository' ) ) : ?>
+					<br>
+						<?php esc_html_e( 'Note: a manually uploaded package that does not have its counterpart in a Remote Repository will need to be uploaded manually for each new release to provide updates.', 'wppus' ); ?>
+					<?php endif; ?>
+				</p>
+			</td>
+		</tr>
 	</table>
 	<hr>
 	<form autocomplete="off" action="" method="post">
