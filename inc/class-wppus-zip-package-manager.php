@@ -198,8 +198,10 @@ class WPPUS_Zip_Package_Manager {
 
 			if ( ( 1 === count( $content ) && is_dir( $maybe_directory ) ) ) {
 				$directory = $maybe_directory;
-
-				$wp_filesystem->move( $directory, $temp_path . $this->package_slug, true );
+				
+				if($directory !== ($temp_path . $this->package_slug)) {
+					$wp_filesystem->move( $directory, $temp_path . $this->package_slug, true );
+				}
 				$wp_filesystem->chmod( $temp_path, false, true );
 
 				do_action( 'wppus_before_remote_package_zip', $this->package_slug, $temp_path, $archive_path );
