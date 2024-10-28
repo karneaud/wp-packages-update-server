@@ -15,39 +15,41 @@ class WPPUS_Update_API {
 	protected static $api_base_endpoint_url;
 	protected static $doing_update_api_request = null;
 
-	public function __construct($version = 1) {
+	public function __construct($init_hooks = false, $version = 1) {
 		self::$api_version = $version;
 		self::$api_base_endpoint_url = sprintf("%s/v%d", self::$api_base_url ,self::$api_version);
 		self::get_config();
-		$this->register_routes();
-		add_action("init", function() { add_rewrite_rule( '^wppus/update/?$', 'index.php?$matches[1]&__wppus_update_api=1&action=download', 'top'); flush_rewrite_rules();  });
-		add_filter('query_vars', function($vars) {
-			$vars = array_merge(
-				$vars,
-				array(
-					'__wppus_update_api',
-					'action',
-					'token',
-					'package_id',
-					'update_type',
-				),
-				array_keys($this->get_download_args())
-			);
-	
-			return $vars;
-		});
-		add_action( 'parse_request', function(){
-			global $wp;
-			if ( isset( $wp->query_vars['__wppus_update_api'] ) ) {
-				$request = new \WP_REST_Request('GET','');
-				$request->set_query_params(array_intersect_key($wp->query_vars, $this->get_download_args() ));
-				$this->download_package( $request );
-			}
-		}, 0 );
+		if($init_hooks) {
+			$this->register_routes();
+			add_action("init", function() { add_rewrite_rule( '^wppus/update/?$', 'index.php?$matches[1]&__wppus_update_api=1&action=download', 'top'); flush_rewrite_rules();  });
+			add_filter('query_vars', function($vars) {
+				$vars = array_merge(
+					$vars,
+					array(
+						'__wppus_update_api',
+						'action',
+						'token',
+						'package_id',
+						'update_type',
+					),
+					array_keys($this->get_download_args())
+				);
 		
-		add_action( 'wppus_checked_remote_package_update', array( $this, 'wppus_checked_remote_package_update' ), 10, 3 );
-		add_action( 'wppus_removed_package', array( $this, 'wppus_removed_package' ), 10, 3 );
-		add_action( 'wppus_primed_package_from_remote', array( $this, 'wppus_primed_package_from_remote' ), 10, 2 );
+				return $vars;
+			});
+			add_action( 'parse_request', function(){
+				global $wp;
+				if ( isset( $wp->query_vars['__wppus_update_api'] ) ) {
+					$request = new \WP_REST_Request('GET','');
+					$request->set_query_params(array_intersect_key($wp->query_vars, $this->get_download_args() ));
+					$this->download_package( $request );
+				}
+			}, 0 );
+			
+			add_action( 'wppus_checked_remote_package_update', array( $this, 'wppus_checked_remote_package_update' ), 10, 3 );
+			add_action( 'wppus_removed_package', array( $this, 'wppus_removed_package' ), 10, 3 );
+			add_action( 'wppus_primed_package_from_remote', array( $this, 'wppus_primed_package_from_remote' ), 10, 2 );
+		}
 		
 		
 	}
@@ -115,7 +117,7 @@ class WPPUS_Update_API {
 		$params['slug'] = $params['package_id'];
 		$status = 200;
 		$this->init_server($params['package_id']);
-		$params += ['license_key' => $params['update_license_key'], 'license_signature' => $params['update_license_signature']];
+		$params += ['license_key' => $params['update_license_key'] ?? null, 'license_signature' => $params['update_license_signature'] ?? null ];
 		do_action( 'wppus_before_handle_update_request', $params );
 
 		$response = $this->update_server->handleRequest($params);

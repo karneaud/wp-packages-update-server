@@ -229,7 +229,7 @@ class WPPUS_License_API {
             register_rest_route(self::$api_base_endpoint_url, '/licenses/check', array(
                 'methods' => 'GET',
                 'callback' => array($this, 'api_check'),
-                'permission_callback' => array($this, 'verify_bearer_token'),
+               'permission_callback' => array($this, 'verify_bearer_token'),
                 'args' => $this->get_license_args()
             ));
 
@@ -244,30 +244,47 @@ class WPPUS_License_API {
                 'methods' => 'POST',
                 'callback' => array($this, 'api_deactivate'),
                 'permission_callback' => array($this, 'verify_bearer_token'),
-                'args' => $this->get_license_args()
+                'args' => $this->get_license_args() + ['license_signature']
             ));
         });
     }
 
     public function verify_bearer_token(WP_REST_Request $request) {
 
-		if(!is_array(self::$config) || !array_key_exists('private_api_auth_keys', self::$config) || empty(self::$config['private_api_auth_keys'])) return true;
+		// if(!is_array(self::$config) || !array_key_exists('private_api_auth_keys', self::$config) || empty(self::$config['private_api_auth_keys'])) return true;
 
-        $auth_header = $request->get_header('authorization');
-        if (!$auth_header) {
-            return new WP_Error('rest_forbidden', __('Authorization header not found.', 'wppus'), array('status' => 401));
-        }
+        // $auth_header = $request->get_header('authorization');
+        // if (!$auth_header) {
+        //     return new WP_Error('rest_forbidden', __('Authorization header not found.', 'wppus'), array('status' => 401));
+        // }
 		
 
-        list($token_type, $token) = explode(' ', $auth_header);
-        if (strtolower($token_type) !== 'bearer' || !$token) {
-            return new WP_Error('rest_forbidden', __('Invalid authorization header format.', 'wppus'), array('status' => 401));
-        }
+        // list($token_type, $token) = explode(' ', $auth_header);
+        // if (strtolower($token_type) !== 'bearer' || !$token) {
+        //     return new WP_Error('rest_forbidden', __('Invalid authorization header format.', 'wppus'), array('status' => 401));
+        // }
 
-		define('EXPECTED_SECRET_KEY', self::$config['private_api_auth_keys'] );
-        $secret_key = base64_decode($token);
-        if (!$secret_key || !in_array($secret_key ,EXPECTED_SECRET_KEY))  { // Replace with the actual expected secret key
-            return new WP_Error('rest_forbidden', __('Invalid secret key.', 'wppus'), array('status' => 401));
+		// define('EXPECTED_SECRET_KEY', self::$config['private_api_auth_keys'] );
+        // $secret_key = base64_decode($token);
+        // if (!$secret_key || !in_array($secret_key ,EXPECTED_SECRET_KEY))  { // Replace with the actual expected secret key
+        //     return new WP_Error('rest_forbidden', __('Invalid secret key.', 'wppus'), array('status' => 401));
+        // }
+
+        if ( wp_is_application_passwords_available() ) {
+            // $auth_header = $request->get_header( 'Authorization' );
+    
+            // if ( empty( $auth_header ) ) {
+            //     return new WP_Error( 'rest_forbidden', __( 'Authentication required. Application Password not found' ), array( 'status' => 401 ) );
+            // }
+    
+            // $user_id = get_current_user_id(); // or get the user ID from the request data
+            // $result  = wp_validate_application_password( $user_id );
+    
+            // if ( ! $result ) {
+            //     return new WP_Error( 'rest_forbidden', __( 'Authentication failed.' ), array( 'status' => 403 ) );
+            // }
+        } elseif ( ! current_user_can( 'manage_options' ) ) {
+            return new WP_Error( 'rest_forbidden', __( 'Permission denied.' ), array( 'status' => 403 ) );
         }
 
         return true;
@@ -293,6 +310,7 @@ class WPPUS_License_API {
                 'default' => array()
             ),
             'package_slug' => array(
+                'required' => true,
                 'sanitize_callback' => 'sanitize_text_field'
             )
         );
@@ -480,9 +498,10 @@ class WPPUS_License_API {
             }
         } else {
             $result['license_key'] = isset($license_data['license_key']) ? $license_data['license_key'] : false;
+            $result['message'] = __("License {$license->status}",'wppus');
             $raw_result = $result;
         }
-    
+        
         if ($license_data['package_slug'] && $license->package_slug !== $license_data['package_slug']) {
             $result['package_slug'] = __('Plugin not valid','wppus');
             $result['message'] = __('Plugin/ Theme not valid','wppus');
@@ -491,7 +510,6 @@ class WPPUS_License_API {
     
         $result = apply_filters('wppus_activate_license_result', $result, $license_data, $license);
         do_action('wppus_did_activate_license', $raw_result, $license_data);
-    
         if (!is_object($result)) {
             $this->http_response_code = 400;
         }
@@ -500,9 +518,15 @@ class WPPUS_License_API {
     }
     
     public function deactivate($args = null) {
+        php_log($args);
         $license_data = apply_filters('wppus_deactivate_license_dirty_payload', $args ? $args : array());
         $request_slug = isset($license_data['package_slug']) ? $license_data['package_slug'] : false;
-        $license = $this->license_server->read_license($license_data);
+        $license = null;
+        if(isset($license_data['license_signature']) && $this->license_server->is_signature_valid($license_data['license_key'], $license_data['license_signature'])) 
+        {
+            $license = $this->license_server->read_license($license_data);
+        }
+       
         $result = array();
         $raw_result = array();
     
@@ -563,7 +587,7 @@ class WPPUS_License_API {
             }
         } else {
             $result['license_key'] = isset($license_data['license_key']) ? $license_data['license_key'] : false;
-            $result['message'] = __('Plugn/ Theme or domain not valid','wppus');
+            $result['message'] = __('Plugn/ Theme, key or domain not valid','wppus');
             $raw_result = $result;
            
             $this->http_response_code = 404;
@@ -580,10 +604,16 @@ class WPPUS_License_API {
     }
     
     public function check($args = null) {
+        $raw_result = false;
         $license_data = apply_filters('wppus_check_license_dirty_payload', $args ? $args : array());
-        $result = $this->license_server->read_license($license_data);
+        if(isset($license_data['license_signature']) && 
+            $this->license_server->is_signature_valid($license_data['license_key'], $license_data['license_signature'])) 
+        {
+            $result = $this->license_server->read_license($license_data);
+        }
+
         $raw_result = array();
-    
+        
         if (is_object($result)) {
             $raw_result = clone $result;
             unset($result->hmac_key);

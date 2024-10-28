@@ -56,7 +56,9 @@ class WPPUS_License_Server {
 		'expired',
 	);
 
-	public function __construct() {}
+	public function __construct() {
+		add_filter('wppus_is_signature_valid', fn($true, $key, $sig) => $this->is_signature_valid($key, $sig), 10, 3);
+	}
 
 	/*******************************************************************
 	 * Public methods
